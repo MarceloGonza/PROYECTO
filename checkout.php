@@ -101,7 +101,7 @@ if($productos!= null){
                 $cantidad; ?>" size="5" id="cantidad_<?php echo $_id; ?>" 
                 onchange="actualizaCantidad(this.value, <?php echo $_id; ?>, <?php echo $precio; ?> )">
                 </td>
-                <td class="subtotal_<?php $_id; ?>">
+                <td class="subtotal_<?= $_id?>">
                     $<?php echo number_format($subtotal, 3, '.', ','); ?>
                 </td>
                 <td>
