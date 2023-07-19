@@ -65,11 +65,8 @@ if($productos!= null){
     </div>
 </header>
 
-
-
 <main>
     <div class="container">
-
         <div class="table-responsive">
             <table class="table">
                 <thead>
@@ -81,7 +78,6 @@ if($productos!= null){
                         <th></th>
                     </tr>
                 </thead>
-
                 <tbody>
     <?php if($lista_carrito == null) {
         echo '<tr><td colspan="5" class="text-center"><b>Lista vacía</b></td></tr>';
@@ -101,9 +97,11 @@ if($productos!= null){
                 <td><?php echo $nombre; ?></td>
                 <td>$<?php echo number_format($precio_desc, 3, '.', ','); ?></td>
                 <td> 
-                    <input type="number" min="1" max="10" step="1" value="<?php echo $cantidad; ?>" size="5" id="cantidad_<?php echo $_id; ?>" onchange="actualizaCantidad(this.value, <?php echo $_id; ?>)">
+                <input type="number" min="1" max="10" step="1" value="<?php echo 
+                $cantidad; ?>" size="5" id="cantidad_<?php echo $_id; ?>" 
+                onchange="actualizaCantidad(this.value, <?php echo $_id; ?>, <?php echo $precio; ?> )">
                 </td>
-                <td>
+                <td class="subtotal_<?php $_id; ?>">
                     $<?php echo number_format($subtotal, 3, '.', ','); ?>
                 </td>
                 <td>
@@ -111,7 +109,6 @@ if($productos!= null){
                 </td>
             </tr>
         <?php } ?>
-
         <tr>
             <td colspan="3"></td>
             <td colspan="2">
@@ -143,10 +140,8 @@ integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxV
 crossorigin="anonymous"></script>
 
 <script>
-
-//function para el actualizar el carrito de compras
-
-function actualizaCantidad(cantidad, id) {
+function actualizaCantidad(cantidad, id, precio) {
+    document.querySelector('#subtotal_[$id]').innerHTML = precio*cantidad;
     let url = './clases/actualizar_carrito.php';
     let formData = new FormData();
     formData.append('action', 'agregar');
@@ -157,16 +152,28 @@ function actualizaCantidad(cantidad, id) {
         method: 'POST',
         body: formData,
         mode: 'cors'
-    }).then(response => response.json())
-        .then(data => {
-
-            if (data.ok) {
-                let divsubtotal = document.getElementById('subtotal_' + id);
-                divsubtotal.innerText = data.sub;
-            }
-        });
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.ok) {
+            let divsubtotal = document.getElementById('subtotal_' + id);
+            divsubtotal.innerHTML = '$' + data.sub; // Update the subtotal displayed on the page
+            actualizarTotal(); // Call function to update the total
+        }
+    });
 }
 
+function actualizarTotal() {
+    let subtotales = document.querySelectorAll('td.subtotal');
+    let total = 0;
+    subtotales.forEach(subtotal => {
+        let subtotalValue = parseFloat(subtotal.textContent.replace('$', '').replace(',', ''));
+        total += subtotalValue;
+    });
+
+    let totalElement = document.getElementById('total');
+    totalElement.textContent = '$' + total.toFixed(3).replace(/\d(?=(\d{3})+\.)/g, '$&,'); // Update the total displayed on the page
+}
 </script>
 </body>
 </html>
