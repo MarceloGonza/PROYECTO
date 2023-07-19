@@ -99,13 +99,15 @@ if($productos!= null){
                 <td> 
                 <input type="number" min="1" max="10" step="1" value="<?php echo 
                 $cantidad; ?>" size="5" id="cantidad_<?php echo $_id; ?>" 
-                onchange="actualizaCantidad(this.value, <?php echo $_id; ?>, <?php echo $precio; ?> )">
-                </td>
+                onchange="actualizaCantidad(this.value, <?php echo $_id; ?>, 
+                <?php echo $precio; ?> )">
                 <td class="subtotal_<?= $_id?>">
                     $<?php echo number_format($subtotal, 3, '.', ','); ?>
                 </td>
                 <td>
-                    <a href="#" id="eliminar" class="btn btn-warning btn-sm" data-bs-id="<?php echo $_id; ?>" data-bs-toggle="modal" data-bs-target="eliminaModal">Eliminar</a> 
+                    <a href="#" id="eliminar" class="btn btn-warning btn-sm" 
+                    data-bs-id="<?php echo $_id; ?>" data-bs-toggle="modal" 
+                    data-bs-target="#eliminaModal">Eliminar</a> 
                 </td>
             </tr>
         <?php } ?>
@@ -129,9 +131,29 @@ if($productos!= null){
                     </button>
                 </div>
             </div>
-
     </div>
 </main>
+
+<!-- Modal -->
+<div class="modal fade" id="eliminaModal" tabindex="-1" aria-labelledby="eliminaModalLabel" 
+aria-hidden="true">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-header">
+            <h5 class="modal-title" id="eliminaModalLabel">Alerta</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+        <div class="modal-body">
+        ¿Desea eliminar el producto?
+    </div>
+        <div class="modal-footer">
+        <button type="button" class="btn custom-btn" data-bs-dismiss="modal">Cerrar</button>
+        <button id="btn-elimina" type="button" class="btn btn-danger" 
+        onclick="eliminar()">Eliminar</button>
+        </div>
+    </div>
+</div>
+</div>
 
 
 <script src="./javascript/script1.js"></script>
@@ -140,40 +162,57 @@ integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxV
 crossorigin="anonymous"></script>
 
 <script>
+
+let eliminaModal = document.getElementById('eliminaModal')
+eliminaModal.addEventListener('show.bs.modal', function(event){
+    let button = event.relatedTarget
+    let id = button.getAttribute('data-bs-id')
+    let buttonElimina = eliminaModal.querySelector('.modal-footer #btn-elimina')
+    buttonElimina.value = id
+})
+
+
 function actualizaCantidad(cantidad, id, precio) {
-    document.querySelector('#subtotal_[$id]').innerHTML = precio*cantidad;
-    let url = './clases/actualizar_carrito.php';
-    let formData = new FormData();
-    formData.append('action', 'agregar');
-    formData.append('id', id);
-    formData.append('cantidad', cantidad);
+    document.querySelector(`.subtotal_${id}`).innerHTML = "$" + (precio * cantidad).toFixed(3);
+
+    // Recalcula el total sumando los nuevos subtotales
+    let total = 0;
+    <?php foreach($lista_carrito as $producto) { ?>
+        let cantidad_<?php echo $producto['id']; ?> = document.getElementById("cantidad_<?php echo $producto['id']; ?>").value;
+        let precio_<?php echo $producto['id']; ?> = <?php echo $producto['precio']; ?>;
+        total += cantidad_<?php echo $producto['id']; ?> * precio_<?php echo $producto['id']; ?>;
+    <?php } ?>
+
+    // Actualiza el elemento de visualización del total
+    document.getElementById("total").innerHTML = "$" + total.toFixed(3);
+
+    // Resto de tu código JavaScript
+}
+
+function eliminar(){
+    let bottonElimina = document.getElementById('btn-elimina')
+    let id = bottonElimina.value
+
+    let url = 'clases/actualizar_carrito.php'
+    let formData = new FormData()
+    formData.append('action', 'eliminar')
+    formData.append('id', id)
 
     fetch(url, {
         method: 'POST',
         body: formData,
         mode: 'cors'
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.ok) {
-            let divsubtotal = document.getElementById('subtotal_' + id);
-            divsubtotal.innerHTML = '$' + data.sub; // Update the subtotal displayed on the page
-            actualizarTotal(); // Call function to update the total
+    }).then(response => response.json())
+    .then(data =>{
+        if(data.ok){
+            location.reload()
         }
-    });
+    })
 }
 
-function actualizarTotal() {
-    let subtotales = document.querySelectorAll('td.subtotal');
-    let total = 0;
-    subtotales.forEach(subtotal => {
-        let subtotalValue = parseFloat(subtotal.textContent.replace('$', '').replace(',', ''));
-        total += subtotalValue;
-    });
 
-    let totalElement = document.getElementById('total');
-    totalElement.textContent = '$' + total.toFixed(3).replace(/\d(?=(\d{3})+\.)/g, '$&,'); // Update the total displayed on the page
-}
+// Resto de tu código JavaScript
 </script>
+
 </body>
 </html>
