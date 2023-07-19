@@ -26,13 +26,12 @@ if (isset($_POST['action'])) {
 
 echo json_encode($datos); 
 
-
 function agregar($id, $cantidad)
 {
     $res = 0;
     if ($id > 0 && $cantidad > 0 && is_numeric($cantidad)) {
         if (isset($_SESSION['carrito']['productos'][$id])) {
-            $_SESSION['carrito']['productos'][$id] += $cantidad;
+            $_SESSION['carrito']['productos'][$id] = $cantidad;
         } else {
             $_SESSION['carrito']['productos'][$id] = $cantidad;
         }
@@ -45,7 +44,7 @@ function agregar($id, $cantidad)
         $precio = $row['precio'];
         $descuento = $row['descuento'];
         $precio_desc = $precio - (($precio * $descuento) / 100);
-        $res = $_SESSION['carrito']['productos'][$id] * $precio_desc;
+        $res = $precio * $precio_desc;
     }
 
     return $res;
